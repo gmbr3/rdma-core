@@ -1,7 +1,7 @@
 #
 # spec file for package rdma-core
 #
-# Copyright (c) 2019 SUSE LINUX GmbH, Nuernberg, Germany.
+# Copyright (c) 2021 SUSE LLC
 #
 # All modifications and additions to the file contributed by third parties
 # remain the property of their copyright owners, unless otherwise agreed
@@ -441,10 +441,10 @@ easy, object-oriented access to IB verbs.
 cd build
 %cmake_install
 cd ..
-mkdir -p %{buildroot}/%{_sysconfdir}/rdma
+mkdir -p %{buildroot}%{_sysconfdir}/rdma
 
-%global dracutlibdir %%{_prefix}/lib/dracut/
-%global sysmodprobedir %%{_sysconfdir}/modprobe.d
+%global dracutlibdir %%{_prefix}/lib/dracut
+%global sysmodprobedir %%{_prefix}/lib/modprobe.d
 
 mkdir -p %{buildroot}%{_udevrulesdir}
 mkdir -p %{buildroot}%{dracutlibdir}/modules.d/05rdma
@@ -453,7 +453,7 @@ mkdir -p %{buildroot}%{_unitdir}
 
 # Port type setup for mlx4 dual port cards
 install -D -m0644 redhat/rdma.mlx4.sys.modprobe %{buildroot}%{sysmodprobedir}/50-libmlx4.conf
-install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}/%{_sysconfdir}/rdma/mlx4.conf
+install -D -m0644 redhat/rdma.mlx4.conf %{buildroot}%{_sysconfdir}/rdma/mlx4.conf
 chmod 0644 %{buildroot}%{sysmodprobedir}/50-libmlx4.conf
 install -D -m0755 redhat/rdma.mlx4-setup.sh %{buildroot}%{_libexecdir}/mlx4-setup.sh
 
@@ -475,6 +475,10 @@ for service in rdma rdma-ndd ibacm iwpmd srp_daemon; do ln -sf %{_sbindir}/servi
 # Delete the package's init.d scripts
 rm -rf %{buildroot}/%{_initddir}/
 rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
+
+# No more /etc for system config
+mv %{buildroot}%{_sysconfdir}/modprobe.d/* %{buildroot}%{sysmodprobedir}
+mv %{buildroot}%{_sysconfdir}/udev/rules.d/* %{buildroot}%{_udevrulesdir}
 
 %post -n %verbs_lname -p /sbin/ldconfig
 %postun -n %verbs_lname -p /sbin/ldconfig
@@ -574,35 +578,23 @@ rm -rf %{buildroot}/%{_sbindir}/srp_daemon.sh
 %dir %{_sysconfdir}/rdma
 %dir %{_sysconfdir}/rdma/modules
 %dir %{_docdir}/%{name}-%{version}
-%dir %{_udevrulesdir}
-%dir %{_sysconfdir}/udev
-%dir %{_sysconfdir}/udev/rules.d
-%dir %{_sysconfdir}/modprobe.d
 %doc %{_docdir}/%{name}-%{version}/README.md
 %doc %{_docdir}/%{name}-%{version}/udev.md
-%config(noreplace) %{_sysconfdir}/rdma/mlx4.conf
-%config(noreplace) %{_sysconfdir}/rdma/modules/infiniband.conf
-%config(noreplace) %{_sysconfdir}/rdma/modules/iwarp.conf
-%config(noreplace) %{_sysconfdir}/rdma/modules/opa.conf
-%config(noreplace) %{_sysconfdir}/rdma/modules/rdma.conf
-%config(noreplace) %{_sysconfdir}/rdma/modules/roce.conf
-%if 0%{?dma_coherent}
-%config(noreplace) %{_sysconfdir}/modprobe.d/mlx4.conf
-%endif
-%config(noreplace) %{_sysconfdir}/modprobe.d/truescale.conf
-%config(noreplace) %{_sysconfdir}/udev/rules.d/70-persistent-ipoib.rules
 %{_unitdir}/rdma-hw.target
 %{_unitdir}/rdma-load-modules@.service
-%dir %{dracutlibdir}
-%dir %{dracutlibdir}/modules.d
 %dir %{dracutlibdir}/modules.d/05rdma
 %{dracutlibdir}/modules.d/05rdma/module-setup.sh
 %{_udevrulesdir}/../rdma_rename
 %{_udevrulesdir}/60-rdma-persistent-naming.rules
+%{_udevrulesdir}/70-persistent-ipoib.rules
 %{_udevrulesdir}/75-rdma-description.rules
 %{_udevrulesdir}/90-rdma-hw-modules.rules
 %{_udevrulesdir}/90-rdma-ulp-modules.rules
 %{_udevrulesdir}/90-rdma-umad.rules
+%if 0%{?dma_coherent}
+%{sysmodprobedir}/mlx4.conf
+%endif
+%{sysmodprobedir}/truescale.conf
 %{sysmodprobedir}/50-libmlx4.conf
 %{_libexecdir}/mlx4-setup.sh
 %{_libexecdir}/truescale-serdes.cmds
