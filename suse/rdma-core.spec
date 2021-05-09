@@ -580,6 +580,12 @@ mv %{buildroot}%{_sysconfdir}/udev/rules.d/* %{buildroot}%{_udevrulesdir}
 %dir %{_docdir}/%{name}-%{version}
 %doc %{_docdir}/%{name}-%{version}/README.md
 %doc %{_docdir}/%{name}-%{version}/udev.md
+%config(noreplace) %{_sysconfdir}/rdma/mlx4.conf
+%config(noreplace) %{_sysconfdir}/rdma/modules/infiniband.conf
+%config(noreplace) %{_sysconfdir}/rdma/modules/iwarp.conf
+%config(noreplace) %{_sysconfdir}/rdma/modules/opa.conf
+%config(noreplace) %{_sysconfdir}/rdma/modules/rdma.conf
+%config(noreplace) %{_sysconfdir}/rdma/modules/roce.conf
 %{_unitdir}/rdma-hw.target
 %{_unitdir}/rdma-load-modules@.service
 %dir %{dracutlibdir}/modules.d/05rdma
